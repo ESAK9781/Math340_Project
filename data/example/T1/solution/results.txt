@@ -1,0 +1,12 @@
+size 6 file 0: fail
+size 6 file 1: pass
+size 6 file 2: pass
+size 6 file 3: pass
+size 10 file 0: pass
+size 10 file 1: fail
+size 10 file 2: pass
+size 10 file 3: pass
+size 20 file 0: pass
+size 20 file 1: pass
+size 20 file 2: fail
+size 20 file 3: pass

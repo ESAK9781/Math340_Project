@@ -1,3 +1,6 @@
+import json
+from itertools import chain, combinations
+
 #Use these 7 global variables to set the directories for your data and output (solution) files for each
 #task.  Although I distinctly remember Dr Fagin standing on a soap box in CS210 and telling me not to use
 #global variables, python doesn't have constants.  Instead, the convention is to use an all uppercase name
@@ -67,7 +70,12 @@ def read_pairs(csv_filename):
         if line:
             tokens=line.split(",")
             label=tokens[0].strip(": ")
-            pairs[label]=tokens[1]
+            friends = tokens[1:]
+            true_friends = []
+            for friend in friends:
+                if friend != []:
+                    true_friends.append(friend)
+            pairs[label]=true_friends
     file.close()
     return pairs
 
@@ -102,18 +110,75 @@ def test_halls(priorities_filename,man_set_label,woman_set_label):
     #exception of null set).
     #source: https://stackoverflow.com/questions/1482308/how-to-get-all-subsets-of-a-set-powerset
     def powerset(iterable):
-        from itertools import chain, combinations
         s = list(iterable)
         return chain.from_iterable(combinations(s, r) for r in range(1,len(s)+1))
-    #TODO: test Hall's condition
-    return 0
+    
+    def count_neighbors(ss, pairs):
+        hood = set()
+        for node in ss:
+            for partner in pairs[node]:
+                hood.add(partner)
+        
+        return len(hood)    
+    
+    pairs = read_pairs(priorities_filename)
+    men = []
+    women = []
+    for node in pairs.keys():
+        node : str
+        if node.startswith(man_set_label):
+            men.append(node)
+        elif node.startswith(woman_set_label):
+            women.append(node)
+    if (len(men) != len(women)):
+        return "fail"
+    
+    subsets = powerset(men)
+    
+    for s in subsets:
+        if (len(s) > count_neighbors(s, pairs)):
+            return "fail"
+        
+    return "pass"
 
 #this is where you will test whether a set of proposed pairings are stable or not.  It should
 #return a set of sets.  Each inner set represents a rogue pairing.  A stable pairing should
 #return an empty set.
 def find_rogues(pairs_filename, priorities_filename):
-    #TODO: identify rogue pairings
-    return 0
+    pairs = read_pairs(pairs_filename)
+    prio = read_priorities(priorities_filename)
+    
+    def get_p(node):
+        return prio[node[0]][node]
+    
+    # print(json.dumps(prio))
+    # return []
+    
+    tup = []
+    for key in pairs.keys():
+        tup.append((key, pairs[key][0]))
+    pairs = tup
+    
+    def get_b_partner(b):
+        for p in pairs:
+            if p[1] == b:
+                return p[0]
+        print("FAAAAH! No matches!")
+    
+    rogues = []
+    for p in pairs:
+        a = p[0]
+        b = p[1]
+        b_prio_index = get_p(a).index(b)
+        better_partners = get_p(a)[:b_prio_index]
+        for new_interest in better_partners:
+            new_interests_wife = get_b_partner(new_interest)
+            how_much_b_likes_his_wife = get_p(new_interest).index(new_interests_wife)
+            how_much_b_likes_a = get_p(new_interest).index(a)
+            if (how_much_b_likes_a < how_much_b_likes_his_wife):
+                rogues.append([a, new_interest])
+    
+    return rogues
 
 #This is where you need to implement the Gale-Shapley algorithm on a set of priorities defined
 #in a CSV file located by the csv_path parameter.  man_set_label and woman_set_label are strings
@@ -162,8 +227,8 @@ def main():
             print("Task 3 complete.")
         return 0
     
-    #task_1()#test Hall's Condition for each
-    #task_2()#find rogue pairs for each proposed
+    # task_1()#test Hall's Condition for each
+    task_2()#find rogue pairs for each proposed
     #task_3()#generate the blue and red optimal solutions for each
 
     return 0
