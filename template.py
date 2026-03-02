@@ -1,3 +1,5 @@
+# DOCUMENTATION: I used this (https://en.wikipedia.org/wiki/Gale%E2%80%93Shapley_algorithm)
+
 import json
 from itertools import chain, combinations
 
@@ -334,3 +336,6 @@ def test():
 #Here's where main() and/or test() gets executed when you run this script.
 main()
 #test()
+
+
+
