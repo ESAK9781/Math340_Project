@@ -186,10 +186,101 @@ def find_rogues(pairs_filename, priorities_filename):
 #individual man and woman.  Men propose to women and women reject men as described in the
 #assigned videos.  This function should return a dictionary where the indexes are the men
 #and the values are the women.
-def pair(csv_path,man_set_label,woman_set_label):
-    #TODO: implement the Gale-Shapley algorithm
-    return 0
 
+class Man:
+    def __init__(self, name, pref):
+        self.name = name
+        self.pref = pref
+        self.single = True
+        self.wife = None
+        self.offer_index = 0
+        
+    def make_offer(self):
+        offer = self.pref[self.offer_index]
+        self.offer_index += 1
+        return offer
+        
+class Woman:
+    def __init__(self, name, pref):
+        self.name = name
+        self.pref = pref
+        self.husband = None
+        
+    def get_divorce(self):
+        if (self.husband == None):
+            return
+        self.husband : Man
+        self.husband.single = True
+        self.husband.wife = None # :(
+        self.husband = None
+        
+    def check_prefers(self, man : Man):
+        if (self.husband == None):
+            return True
+
+        for option in self.pref:
+            if option == self.husband.name:
+                return False
+            if option == man.name:
+                return True
+        
+        print(f'Error : woman {self.name} has no preference on {man.name} or {self.husband.name}')
+    
+
+def pair(csv_path,man_set_label,woman_set_label):
+    pref = read_priorities(csv_path)
+    
+    men = []
+    women = []
+    for char1 in pref.keys():
+        for name in pref[char1].keys():
+            person_pref = pref[char1][name]
+            if name.startswith(man_set_label):
+                men.append(Man(name, person_pref))
+            elif name.startswith(woman_set_label):
+                women.append(Woman(name, person_pref))
+            else:
+                print("There should only be two genders. Something is wrong.")
+                print(f'\tOffending person: {name}')
+    
+    def get_woman(name):
+        for woman in women:
+            if woman.name == name:
+                return woman
+        print(f'Error 404 : Woman not found {name}')
+    def get_man(name):
+        for man in men:
+            if man.name == name:
+                return man
+        print(f'Error 404 : Man not found {name}')
+
+
+    # now, the men all put bids on the women
+    done = False
+    while not done: 
+        done = True
+        for man in men:
+            man : Man
+            if man.single:
+                done = False
+                offer = man.make_offer()
+                woman : Woman = get_woman(offer)
+                if woman.check_prefers(man):
+                    woman.get_divorce()
+                    woman.husband = man
+                    man.wife = woman
+                    man.single = False
+    
+    dictionary = {}
+    for man in men:
+        dictionary[man.name] = man.wife.name
+        
+    return dictionary
+                
+                    
+                
+        
+    
 #This is the main program.  For each of the three tasks you've been assigned, it has code to loop
 #through all the files provided.  My suggestion is that you only use it once you have each task
 #working as desired by uncommenting the calls to each task as appropriate.  Use the test() function
@@ -228,8 +319,8 @@ def main():
         return 0
     
     # task_1()#test Hall's Condition for each
-    task_2()#find rogue pairs for each proposed
-    #task_3()#generate the blue and red optimal solutions for each
+    # task_2()#find rogue pairs for each proposed
+    task_3()#generate the blue and red optimal solutions for each
 
     return 0
    
